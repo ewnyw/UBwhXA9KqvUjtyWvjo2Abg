@@ -1,73 +1,565 @@
-<!DOCTYPE HTML>
-<html>
-    <head>
-        <meta charset="utf-8">
-        <title>мой крутой вебсайт</title>
-
-
-        <style>
-            body {
-                background-color: blanchedalmond;
-                font-family: Georgia, 'Times New Roman', Times, serif;
-            }
-            header {
-                text-align: center;
-                color:salmon 
-                
-            }
-            dt {
-                color:tomato
-            }
-            dd {
-                color:darkred
-            }
-            footer {
-                text-align: center;
-                color:lightslategrey
-            }
-        </style>
-    </head>
-
-    <body>
-        <header>
-            <h1>привет, я саша</h1>
-        </header>
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>F1 Racing Challenge</title>
+    <style>
+        body {
+            margin: 0;
+            padding: 0;
+            overflow: hidden;
+            background-color: #222;
+            font-family: Arial, sans-serif;
+            touch-action: manipulation;
+        }
         
-        <article>
-            <img src="5422677716697742652.jpg">
-            <dl>
-                <dt>О СЕБЕ</dt>
-                <dd>Всем привет, меня зовут Саша Кутепов.
-                    Мне 14 (почти 15) и я из Санкт-Петербурга.
-                    Я в 5 отряде.
-                    
-                </dd>
-                
-
-                <dt>мои хобби</dt>
-                <dd>
-                    Мое хобби - фотографирование, а увлекаюсь я всем, что связано с техникой.
-                    Цель на жизнь - прожить ее так, чтобы она запомнилась. И заработать кучу деняк.
-                </dd>
-                <dt>опыт по темам курса</dt>
-                <dd>
-                    Ходил на программирование на питоне 2 года, а вебдизайн и 3д моделирование - ходил на кружок в школе.
-                </dd>
-                <dt>ожидания от смены</dt>
-                <dd>
-                    Хорошо отдохнуть, найти новых друзей и насладиться теплом.
-                </dd>
-            </dl>
-        </article>
+        #game-container {
+            position: relative;
+            width: 300px;
+            height: 500px;
+            margin: 20px auto;
+            overflow: hidden;
+            border: 4px solid #444;
+            box-shadow: 0 0 20px rgba(0, 0, 0, 0.7);
+        }
         
-        <footer>
-            Связаться со мной
-        </footer>
-        <footer>
-            Телефон: +7 911 974 59 65
-        </footer>
-        <footer>
-            Telegram: @swagconnoisseur
-        </footer>
-    </body>
+        #track {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            background-color: #333;
+        }
+        
+        .road-markings {
+            position: absolute;
+            width: 100%;
+            height: 200%;
+            background: repeating-linear-gradient(
+                to bottom,
+                #fff,
+                #fff 20px,
+                transparent 20px,
+                transparent 40px
+            );
+        }
+        
+        .car {
+            position: absolute;
+            width: 30px;
+            height: 60px;
+            z-index: 10;
+            transition: left 0.1s ease;
+        }
+        
+        #player-car {
+            background-color: #ff0000;
+            bottom: 50px;
+            left: 135px;
+            border-radius: 5px 5px 0 0;
+            background: linear-gradient(to bottom, #ff0000 0%, #cc0000 100%);
+        }
+        
+        #player-car:before {
+            content: "";
+            position: absolute;
+            width: 100%;
+            height: 10px;
+            background-color: #fff;
+            top: 15px;
+            left: 0;
+        }
+        
+        #player-car:after {
+            content: "";
+            position: absolute;
+            width: 100%;
+            height: 10px;
+            background-color: #fff;
+            bottom: 15px;
+            left: 0;
+        }
+        
+        .opponent-car {
+            background-color: #00f;
+            border-radius: 5px;
+        }
+        
+        .curve-indicator {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.3);
+            z-index: 5;
+            transition: transform 1s ease;
+        }
+        
+        #score-display {
+            position: absolute;
+            top: 10px;
+            left: 10px;
+            color: white;
+            font-size: 20px;
+            z-index: 20;
+            background-color: rgba(0, 0, 0, 0.5);
+            padding: 5px 10px;
+            border-radius: 5px;
+        }
+        
+        #game-over {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.8);
+            color: white;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            z-index: 30;
+            display: none;
+        }
+        
+        #controls {
+            display: flex;
+            justify-content: center;
+            margin-top: 20px;
+            gap: 10px;
+        }
+        
+        .control-btn {
+            padding: 10px 20px;
+            background-color: #444;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            font-size: 16px;
+        }
+        
+        /* Стили для модального окна о Сириусе */
+        #about-sirius {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.9);
+            color: white;
+            z-index: 100;
+            display: none;
+            overflow-y: auto;
+            padding: 20px;
+            box-sizing: border-box;
+        }
+        
+        #about-sirius-content {
+            max-width: 800px;
+            margin: 20px auto;
+            background-color: #333;
+            padding: 20px;
+            border-radius: 10px;
+            line-height: 1.6;
+        }
+        
+        #about-sirius h2 {
+            color: #ffcc00;
+            text-align: center;
+            margin-bottom: 20px;
+        }
+        
+        #about-sirius ul {
+            padding-left: 20px;
+        }
+        
+        #about-sirius li {
+            margin-bottom: 10px;
+        }
+        
+        .close-btn {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            background: #ff3333;
+            color: white;
+            border: none;
+            padding: 10px 15px;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 16px;
+        }
+        
+        .sirius-btn {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            background-color: #444;
+            color: white;
+            border: none;
+            padding: 5px 10px;
+            border-radius: 5px;
+            z-index: 20;
+            font-size: 14px;
+        }
+        
+        .highlight {
+            color: #ffcc00;
+            font-weight: bold;
+        }
+    </style>
+</head>
+<body>
+    <button class="sirius-btn" id="sirius-btn">О Сириусе</button>
+    
+    <div id="game-container">
+        <div id="track">
+            <div class="road-markings" id="road-markings"></div>
+            <div class="curve-indicator"></div>
+            <div id="player-car" class="car"></div>
+        </div>
+        <div id="score-display">Score: 0</div>
+        <div id="game-over">
+            <h1>GAME OVER</h1>
+            <p id="final-score">Your score: 0</p>
+            <button onclick="resetGame()">Play Again</button>
+        </div>
+    </div>
+    
+    <div id="controls">
+        <button class="control-btn" id="left-btn">←</button>
+        <button class="control-btn" id="right-btn">→</button>
+    </div>
+    
+    <!-- Модальное окно "О Сириусе" -->
+    <div id="about-sirius">
+        <button class="close-btn" id="close-sirius">×</button>
+        <div id="about-sirius-content">
+            <h2>Посёлок городского типа Сириус</h2>
+            <p>Посёлок городского типа Сириус — это современный курортный и образовательный центр на Чёрном море, расположенный в Краснодарском крае, недалеко от Сочи. Он был создан как инфраструктурный и научно-образовательный кластер вокруг Олимпийских объектов 2014 года.</p>
+            
+            <p class="highlight">🔹 Основная информация</p>
+            <ul>
+                <li>Год основания: 2020 (официально получил статус ПГТ)</li>
+                <li>Расположение: Имеретинская низменность, Адлерский район Сочи</li>
+                <li>Ближайший аэропорт: Международный аэропорт Сочи (Адлер)</li>
+                <li>Климат: Субтропический, тёплый и влажный</li>
+            </ul>
+            
+            <p class="highlight">🔹 Главные объекты и достопримечательности</p>
+            <ol>
+                <li><strong>Образовательный центр «Сириус»</strong>
+                    <ul>
+                        <li>Создан по инициативе президента РФ для поддержки одарённых детей.</li>
+                        <li>Здесь проходят программы по науке, искусству и спорту.</li>
+                        <li>Работает Лицей «Сириус» и Научно-технологический университет.</li>
+                    </ul>
+                </li>
+                <li><strong>Олимпийское наследие</strong>
+                    <ul>
+                        <li>Ледовый дворец «Айсберг»</li>
+                        <li>Стадион «Фишт»</li>
+                        <li>Олимпийская деревня (ныне жилой район)</li>
+                    </ul>
+                </li>
+                <li><strong>Парк науки и искусства «Сириус»</strong>
+                    <ul>
+                        <li>Выставочные залы, лаборатории, лектории.</li>
+                    </ul>
+                </li>
+                <li><strong>Природные достопримечательности</strong>
+                    <ul>
+                        <li>Имеретинская набережная – отличное место для прогулок.</li>
+                        <li>Орнитологический парк – уникальная зона с редкими птицами.</li>
+                    </ul>
+                </li>
+            </ol>
+            
+            <p class="highlight">🔹 Инфраструктура</p>
+            <ul>
+                <li>Современные жилые комплексы (много апартаментов).</li>
+                <li>Гостиницы и отели (включая бывшие олимпийские).</li>
+                <li>Торговые центры, кафе, рестораны.</li>
+                <li>Хорошая транспортная доступность (электропоезда, автобусы).</li>
+            </ul>
+            
+            <p class="highlight">🔹 Перспективы развития</p>
+            <p>Сириус активно развивается как научно-технологический и образовательный хаб, а также остаётся популярным местом для туристов. Здесь планируется создание инновационного центра по аналогии со Сколково.</p>
+            
+            <p class="highlight">Интересный факт</p>
+            <p>Название «Сириус» связано не только с самой яркой звездой на небе, но и символизирует стремление к знаниям и достижениям.</p>
+        </div>
+    </div>
+    
+    <script>
+        // Game variables
+        let score = 0;
+        let gameRunning = true;
+        let currentCurve = 0;
+        let opponentCars = [];
+        let curveTimeout;
+        let roadOffset = 0;
+        let lastOpponentY = -100; // Start above screen
+        
+        // DOM elements
+        const gameContainer = document.getElementById('game-container');
+        const track = document.getElementById('track');
+        const playerCar = document.getElementById('player-car');
+        const scoreDisplay = document.getElementById('score-display');
+        const gameOverScreen = document.getElementById('game-over');
+        const finalScoreDisplay = document.getElementById('final-score');
+        const curveIndicator = document.querySelector('.curve-indicator');
+        const leftBtn = document.getElementById('left-btn');
+        const rightBtn = document.getElementById('right-btn');
+        const roadMarkings = document.getElementById('road-markings');
+        const siriusBtn = document.getElementById('sirius-btn');
+        const aboutSirius = document.getElementById('about-sirius');
+        const closeSiriusBtn = document.getElementById('close-sirius');
+        
+        // Player car position
+        let playerPosition = 1; // 0: left, 1: center, 2: right
+        const lanePositions = [80, 135, 190];
+        
+        // Initialize game
+        function initGame() {
+            score = 0;
+            gameRunning = true;
+            playerPosition = 1;
+            roadOffset = 0;
+            lastOpponentY = -100;
+            updatePlayerPosition();
+            gameOverScreen.style.display = 'none';
+            
+            // Clear all opponent cars
+            opponentCars.forEach(car => car.element.remove());
+            opponentCars = [];
+            
+            // Start game loop
+            requestAnimationFrame(gameLoop);
+            
+            // Start generating opponents
+            setInterval(generateOpponent, 1500); // Reduced interval for more cars
+            
+            // Random curves
+            scheduleNextCurve();
+        }
+        
+        // Game loop
+        function gameLoop() {
+            if (!gameRunning) return;
+            
+            // Move road markings to create illusion of movement
+            roadOffset += 2;
+            if (roadOffset >= 40) roadOffset = 0;
+            roadMarkings.style.transform = `translateY(${roadOffset}px)`;
+            
+            // Move opponent cars
+            moveOpponents();
+            
+            // Check if player passed any opponents
+            checkPassing();
+            
+            // Check collisions
+            checkCollisions();
+            
+            requestAnimationFrame(gameLoop);
+        }
+        
+        // Generate opponent cars with guaranteed passable lanes
+        function generateOpponent() {
+            if (!gameRunning || opponentCars.length >= 5) return;
+            
+            // Ensure minimum distance between cars
+            if (lastOpponentY > -50) return;
+            
+            const colors = ['#00f', '#0f0', '#ff0', '#f0f', '#0ff'];
+            const color = colors[Math.floor(Math.random() * colors.length)];
+            
+            // Get currently occupied lanes
+            const occupiedLanes = new Set();
+            opponentCars.forEach(car => {
+                // Only consider cars in the upper half of the screen
+                if (car.y < 250) occupiedLanes.add(car.lane);
+            });
+            
+            // Find available lanes (always leave at least one lane free)
+            let availableLanes = [0, 1, 2].filter(lane => !occupiedLanes.has(lane));
+            
+            // If all lanes would be occupied, remove one random car
+            if (availableLanes.length === 0) {
+                // Find which lanes we can use without blocking all paths
+                // This ensures we never completely block all 3 lanes
+                availableLanes = [0, 1, 2];
+                
+                // Remove one random occupied lane to create a path
+                const lanesArray = Array.from(occupiedLanes);
+                const indexToRemove = Math.floor(Math.random() * lanesArray.length);
+                availableLanes = availableLanes.filter(lane => lane !== lanesArray[indexToRemove]);
+            }
+            
+            // Choose a random available lane
+            const lane = availableLanes[Math.floor(Math.random() * availableLanes.length)];
+            
+            const opponent = document.createElement('div');
+            opponent.className = 'car opponent-car';
+            opponent.style.left = `${lanePositions[lane]}px`;
+            opponent.style.top = '-60px';
+            opponent.style.backgroundColor = color;
+            
+            gameContainer.appendChild(opponent);
+            
+            opponentCars.push({
+                element: opponent,
+                lane: lane,
+                y: -60,
+                passed: false
+            });
+            
+            lastOpponentY = -60;
+        }
+        
+        // Move opponents
+        function moveOpponents() {
+            opponentCars.forEach(car => {
+                car.y += 3;
+                car.element.style.top = `${car.y}px`;
+                
+                // Apply curve effect
+                if (currentCurve !== 0) {
+                    const curveOffset = currentCurve * 0.5 * (car.y / 500);
+                    car.element.style.transform = `translateX(${curveOffset}px)`;
+                } else {
+                    car.element.style.transform = 'translateX(0)';
+                }
+                
+                // Remove if out of screen
+                if (car.y > 500) {
+                    car.element.remove();
+                    opponentCars = opponentCars.filter(c => c !== car);
+                }
+            });
+        }
+        
+        // Check if player passed opponents
+        function checkPassing() {
+            const playerY = 500 - 50 - 60; // Bottom of screen - margin - car height
+            
+            opponentCars.forEach(car => {
+                if (!car.passed && car.y > playerY) {
+                    car.passed = true;
+                    score += 10;
+                    scoreDisplay.textContent = `Score: ${score}`;
+                }
+            });
+        }
+        
+        // Check collisions
+        function checkCollisions() {
+            const playerRect = playerCar.getBoundingClientRect();
+            
+            for (const car of opponentCars) {
+                const opponentRect = car.element.getBoundingClientRect();
+                
+                if (
+                    playerRect.left < opponentRect.right &&
+                    playerRect.right > opponentRect.left &&
+                    playerRect.top < opponentRect.bottom &&
+                    playerRect.bottom > opponentRect.top
+                ) {
+                    endGame();
+                    break;
+                }
+            }
+        }
+        
+        // Handle curves
+        function scheduleNextCurve() {
+            if (!gameRunning) return;
+            
+            const curveTime = 3000 + Math.random() * 5000;
+            
+            curveTimeout = setTimeout(() => {
+                currentCurve = Math.random() > 0.5 ? 1 : -1;
+                curveIndicator.style.transform = `skewX(${currentCurve * 10}deg)`;
+                
+                // End curve after some time
+                setTimeout(() => {
+                    currentCurve = 0;
+                    curveIndicator.style.transform = 'skewX(0deg)';
+                    scheduleNextCurve();
+                }, 2000 + Math.random() * 3000);
+            }, curveTime);
+        }
+        
+        // Update player position
+        function updatePlayerPosition() {
+            playerCar.style.left = `${lanePositions[playerPosition]}px`;
+            
+            // Apply curve effect
+            if (currentCurve !== 0) {
+                const curveOffset = currentCurve * 10;
+                playerCar.style.transform = `translateX(${curveOffset}px)`;
+            } else {
+                playerCar.style.transform = 'translateX(0)';
+            }
+        }
+        
+        // Move left
+        function moveLeft() {
+            if (playerPosition > 0) {
+                playerPosition--;
+                updatePlayerPosition();
+            }
+        }
+        
+        // Move right
+        function moveRight() {
+            if (playerPosition < 2) {
+                playerPosition++;
+                updatePlayerPosition();
+            }
+        }
+        
+        // End game
+        function endGame() {
+            gameRunning = false;
+            clearTimeout(curveTimeout);
+            finalScoreDisplay.textContent = `Your score: ${score}`;
+            gameOverScreen.style.display = 'flex';
+        }
+        
+        // Reset game
+        function resetGame() {
+            initGame();
+        }
+        
+        // Event listeners
+        leftBtn.addEventListener('mousedown', moveLeft);
+        leftBtn.addEventListener('touchstart', moveLeft);
+        rightBtn.addEventListener('mousedown', moveRight);
+        rightBtn.addEventListener('touchstart', moveRight);
+        
+        document.addEventListener('keydown', (e) => {
+            if (e.key === 'ArrowLeft') moveLeft();
+            if (e.key === 'ArrowRight') moveRight();
+        });
+        
+        // Sirius info button
+        siriusBtn.addEventListener('click', () => {
+            aboutSirius.style.display = 'block';
+            gameRunning = false;
+        });
+        
+        closeSiriusBtn.addEventListener('click', () => {
+            aboutSirius.style.display = 'none';
+            gameRunning = true;
+            if (!gameOverScreen.style.display || gameOverScreen.style.display === 'none') {
+                requestAnimationFrame(gameLoop);
+            }
+        });
+        
+        // Start game
+        initGame();
+    </script>
+</body>
 </html>
